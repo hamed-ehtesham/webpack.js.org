@@ -7,6 +7,8 @@ contributors:
   - simon04
   - 5angel
   - marioacc
+  - byzyk
+  - EugeneHlushko
 ---
 
 Aside from applications, webpack can also be used to bundle JavaScript libraries. The following guide is meant for library authors looking to streamline their bundling strategy.
@@ -37,26 +39,33 @@ npm install --save-dev webpack lodash
 
 __src/ref.json__
 
-```javascript
-[{
-  "num": 1,
-  "word": "One"
-}, {
-  "num": 2,
-  "word": "Two"
-}, {
-  "num": 3,
-  "word": "Three"
-}, {
-  "num": 4,
-  "word": "Four"
-}, {
-  "num": 5,
-  "word": "Five"
-}, {
-  "num": 0,
-  "word": "Zero"
-}]
+```json
+[
+  {
+    "num": 1,
+    "word": "One"
+  },
+  {
+    "num": 2,
+    "word": "Two"
+  },
+  {
+    "num": 3,
+    "word": "Three"
+  },
+  {
+    "num": 4,
+    "word": "Four"
+  },
+  {
+    "num": 5,
+    "word": "Five"
+  },
+  {
+    "num": 0,
+    "word": "Zero"
+  }
+]
 ```
 
 __src/index.js__
@@ -69,49 +78,57 @@ export function numToWord(num) {
   return _.reduce(numRef, (accum, ref) => {
     return ref.num === num ? ref.word : accum;
   }, '');
-};
+}
 
 export function wordToNum(word) {
   return _.reduce(numRef, (accum, ref) => {
     return ref.word === word && word.toLowerCase() ? ref.num : accum;
   }, -1);
-};
+}
 ```
 
 The usage specification for the library use will be as follows:
 
+- __ES2015 module import:__
+
 ``` js
-// ES2015 module import
 import * as webpackNumbers from 'webpack-numbers';
-// CommonJS module require
+// ...
+webpackNumbers.wordToNum('Two');
+```
+
+- __CommonJS module require:__
+
+``` js
 var webpackNumbers = require('webpack-numbers');
 // ...
-// ES2015 and CommonJS module use
 webpackNumbers.wordToNum('Two');
-// ...
-// AMD module require
+```
+
+- __AMD module require:__
+
+``` js
 require(['webpackNumbers'], function ( webpackNumbers) {
   // ...
-  // AMD module use
   webpackNumbers.wordToNum('Two');
-  // ...
 });
 ```
 
 The consumer also can use the library by loading it via a script tag:
 
 ``` html
+<!doctype html>
 <html>
-...
-<script src="https://unpkg.com/webpack-numbers"></script>
-<script>
-  // ...
-  // Global variable
-  webpackNumbers.wordToNum('Five')
-  // Property in the window object
-  window.webpackNumbers.wordToNum('Five')
-  // ...
-</script>
+  ...
+  <script src="https://unpkg.com/webpack-numbers"></script>
+  <script>
+    // ...
+    // Global variable
+    webpackNumbers.wordToNum('Five')
+    // Property in the window object
+    window.webpackNumbers.wordToNum('Five')
+    // ...
+  </script>
 </html>
 ```
 
@@ -203,12 +220,15 @@ import B from 'library/two';
 You won't be able to exclude them from bundle by specifying `library` in the externals. You'll either need to exclude them one by one or by using a regular expression.
 
 ``` js
-externals: [
-  'library/one',
-  'library/two',
-  // Everything that starts with "library/"
-  /^library\/.+$/
-]
+module.exports = {
+  //...
+  externals: [
+    'library/one',
+    'library/two',
+    // Everything that starts with "library/"
+    /^library\/.+$/
+  ]
+};
 ```
 
 
@@ -307,7 +327,7 @@ Or, to add as standard module as per [this guide](https://github.com/dherman/def
 
 The key `main` refers to the [standard from `package.json`](https://docs.npmjs.com/files/package.json#main), and `module` to [a](https://github.com/dherman/defense-of-dot-js/blob/master/proposal.md) [proposal](https://github.com/rollup/rollup/wiki/pkg.module) to allow the JavaScript ecosystem upgrade to use ES2015 modules without breaking backwards compatibility.
 
-W> The `module` property should point to a script that utilizes ES2015 module syntax but no other syntax features that aren't yet supported by browsers or node. This enables
+W> The `module` property should point to a script that utilizes ES2015 module syntax but no other syntax features that aren't yet supported by browsers or node. This enables webpack to parse the module syntax itself, allowing for lighter bundles via [tree shaking](https://webpack.js.org/guides/tree-shaking/) if users are only consuming certain parts of the library.
 
 Now you can [publish it as an npm package](https://docs.npmjs.com/getting-started/publishing-npm-packages) and find it at [unpkg.com](https://unpkg.com/#/) to distribute it to your users.
 
